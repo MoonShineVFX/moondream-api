@@ -1,0 +1,43 @@
+name: Deploy to Cloud Run
+on:
+  push:
+    branches:
+      - master
+      - dev
+
+env:
+  SERVICE_NAME: backend
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Change SERVICE_NAME if not master
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo "SERVICE_NAME=$SERVICE_NAME-$GITHUB_REF_NAME" >> $GITHUB_ENV
+      - name: Create variables
+        id: vars
+        run: |
+          echo "::set-output name=BUCKET_NAME::BUCKET_NAME_$GITHUB_REF_NAME"
+          echo "::set-output name=FIREBASE_CRED::FIREBASE_CRED_$GITHUB_REF_NAME"
+          echo "::set-output name=GCPSA_CRED::GCPSA_CRED_$GITHUB_REF_NAME"
+      - name: Create creds
+        shell: bash
+        run: |
+          mkdir -p firebase
+          echo ${{ secrets[steps.vars.outputs.FIREBASE_CRED] }} >> firebase/$GITHUB_REF_NAME_firebase_config.json
+          echo ${{ secrets[steps.vars.outputs.GCPSA_CRED] }} >> firebase/$GITHUB_REF_NAME_service_account.json
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Deploy to Cloud Run
+        env:
+          CI: false
+          PROJECT_ID: moondream-reality
+        uses: google-github-actions/deploy-cloudrun@v0.6.0
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          source: .
+          region: asia-east1
+          credentials: ${{ secrets.MOONDREAM_DEV_GCP_SA_KEY }}
+          env_vars: ENV_MODE=$GITHUB_REF_NAME,BUCKET_NAME=${{ secrets[steps.vars.outputs.BUCKET_NAME] }}
