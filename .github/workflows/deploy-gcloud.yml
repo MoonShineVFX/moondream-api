@@ -23,14 +23,17 @@ jobs:
           echo "::set-output name=GCPSA_CRED::GCPSA_CRED_$GITHUB_REF_NAME"
       - name: Checkout repo
         uses: actions/checkout@v2
-      - name: create firebase json
+      - name: Create dir
+        run: |
+          mkdir -p firebase
+      - name: Create firebase json
         id: cred-firebase
         uses: jsdaniell/create-json@1.1.2
         with:
           name: firebase_config_${{ github.ref_name }}.json
           json: ${{ secrets[steps.vars.outputs.FIREBASE_CRED] }}
           dir: 'firebase/'
-      - name: create gcp json
+      - name: Create gcp json
         id: cred-gcp
         uses: jsdaniell/create-json@1.1.2
         with:
