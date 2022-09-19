@@ -13,7 +13,7 @@ firebase_client = pyrebase.initialize_app(config=firebae_config)
 
 cred = credentials.Certificate(f'firebase/service_account_{ENV_MODE}.json')
 default_app = initialize_app(cred, {
-    'storageBucket': 'moondream-reality.appspot.com' if ENV_MODE == 'dev' else f'moondream-reality-{ENV_MODE}.appspot.com'
+    'storageBucket': 'moondream-reality.appspot.com' if ENV_MODE == 'dev' else f'moondream-reality-prod.appspot.com'
 })
 
 

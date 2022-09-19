@@ -26,8 +26,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p firebase
-          echo ${{ secrets[steps.vars.outputs.FIREBASE_CRED] }} >> firebase/$GITHUB_REF_NAME_firebase_config.json
-          echo ${{ secrets[steps.vars.outputs.GCPSA_CRED] }} >> firebase/$GITHUB_REF_NAME_service_account.json
+          echo ${{ secrets[steps.vars.outputs.FIREBASE_CRED] }} >> firebase/firebase_config_$GITHUB_REF_NAME.json
+          echo ${{ secrets[steps.vars.outputs.GCPSA_CRED] }} >> firebase/service_account_$GITHUB_REF_NAME.json
       - name: Checkout repo
         uses: actions/checkout@v2
       - name: Deploy to Cloud Run
