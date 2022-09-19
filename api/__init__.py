@@ -5,15 +5,15 @@ import pyrebase
 
 APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENV_MODE = os.getenv('ENV_MODE')
-firebase_config_path = os.path.join(APP_ROOT,  "firebase", str(ENV_MODE) + "_firebase_config.json")
+firebase_config_path = os.path.join(APP_ROOT,  "firebase",  f"firebase_config_{ENV_MODE}.json")
 print(firebase_config_path)
 firebae_config = json.load(open(firebase_config_path))
 firebase_client = pyrebase.initialize_app(config=firebae_config)
 
 
-cred = credentials.Certificate('firebase/' + ENV_MODE +'_service_account.json')
+cred = credentials.Certificate(f'firebase/service_account_{ENV_MODE}.json')
 default_app = initialize_app(cred, {
-    'storageBucket': 'moondream-reality.appspot.com'
+    'storageBucket': 'moondream-reality.appspot.com' if ENV_MODE == 'dev' else f'moondream-reality-{ENV_MODE}.appspot.com'
 })
 
 
@@ -23,6 +23,7 @@ def create_app():
     
     from .user.resource import user_api
     from .session.resource import session_api
+    print(firebase_client.api_key, default_app.project_id)
     app.register_blueprint(user_api)
     app.register_blueprint(session_api)
 
