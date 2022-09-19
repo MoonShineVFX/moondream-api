@@ -19,7 +19,6 @@ jobs:
       - name: Create variables
         id: vars
         run: |
-          echo "::set-output name=BUCKET_NAME::BUCKET_NAME_$GITHUB_REF_NAME"
           echo "::set-output name=FIREBASE_CRED::FIREBASE_CRED_$GITHUB_REF_NAME"
           echo "::set-output name=GCPSA_CRED::GCPSA_CRED_$GITHUB_REF_NAME"
       - name: Create creds
@@ -40,4 +39,4 @@ jobs:
           source: .
           region: asia-east1
           credentials: ${{ secrets.MOONDREAM_DEV_GCP_SA_KEY }}
-          env_vars: ENV_MODE=$GITHUB_REF_NAME,BUCKET_NAME=${{ secrets[steps.vars.outputs.BUCKET_NAME] }}
+          env_vars: ENV_MODE=$GITHUB_REF_NAME
