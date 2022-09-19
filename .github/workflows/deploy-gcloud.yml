@@ -39,4 +39,4 @@ jobs:
           source: .
           region: asia-east1
           credentials: ${{ secrets.MOONDREAM_DEV_GCP_SA_KEY }}
-          env_vars: ENV_MODE=$GITHUB_REF_NAME
+          env_vars: ENV_MODE=${{ github.ref_name }}
