@@ -23,8 +23,9 @@ jobs:
       - name: Create variables
         id: vars
         run: |
-          echo "::set-output name=FIREBASE_CRED::FIREBASE_CRED_$ENV_MODE"
-          echo "::set-output name=GCPSA_CRED::GCPSA_CRED_$ENV_MODE"
+          echo "::set-output name=FIREBASE_CRED::FIREBASE_CRED_$GITHUB_REF_NAME"
+          echo "::set-output name=GCPSA_CRED::GCPSA_CRED_$GITHUB_REF_NAME"
+          echo "::set-output name=STORAGE_BUCKET_KEY::STORAGE_BUCKET_$GITHUB_REF_NAME"
       - name: Checkout repo
         uses: actions/checkout@v2
       - name: Create dir
@@ -34,14 +35,14 @@ jobs:
         id: cred-firebase
         uses: jsdaniell/create-json@1.1.2
         with:
-          name: firebase_config_${{ env.ENV_MODE }}.json
+          name: firebase_config.json
           json: ${{ secrets[steps.vars.outputs.FIREBASE_CRED] }}
           dir: 'firebase/'
       - name: Create gcp json
         id: cred-gcp
         uses: jsdaniell/create-json@1.1.2
         with:
-          name: service_account_${{ env.ENV_MODE }}.json
+          name: service_account.json
           json: ${{ secrets[steps.vars.outputs.GCPSA_CRED] }}
           dir: 'firebase/'
       - name: Deploy to Cloud Run
@@ -54,4 +55,4 @@ jobs:
           source: .
           region: asia-east1
           credentials: ${{ secrets.MOONDREAM_DEV_GCP_SA_KEY }}
-          env_vars: ENV_MODE=${{ env.ENV_MODE }}
+          env_vars: ENV_MODE=${{ env.ENV_MODE }},STORAGE_BUCKET=${{ secrets[steps.vars.outputs.STORAGE_BUCKET_KEY] }}
