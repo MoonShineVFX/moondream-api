@@ -33,7 +33,7 @@ class FirebaseUser:
     
     def create_user(self):
         current_user = copy.deepcopy(self.__dict__)
-        del current_user['custom_claims']
+        del current_user["custom_claims"]
         user_record = auth.create_user(**current_user)
         auth.set_custom_user_claims(uid=user_record.uid, custom_claims=self.custom_claims)
         self.uid = user_record.uid
@@ -55,16 +55,16 @@ class FirebaseUser:
         
     def update_user(self):
         old_user = self.get_user()
-        print('old_user', old_user)
+        print("old_user", old_user)
         
-        update_info = {'uid': self.uid}
+        update_info = {"uid": self.uid}
         for key in old_user:
             if self.__dict__[key]:
                 update_info[key] = self.__dict__[key]
             else:
                 update_info[key] = old_user[key]
            
-        print('update_info', update_info)
+        print("update_info", update_info)
         user_record = auth.update_user(**update_info)
         return self.user_record_to_user(user_record)
     
@@ -85,15 +85,15 @@ class FirebaseUser:
         
 def update_user():
     old_user = self.get_user()
-    print('old_user', old_user)
+    print("old_user", old_user)
     
-    update_info = {'uid': self.uid}
+    update_info = {"uid": self.uid}
     for key in old_user:
         if self.__dict__[key]:
             update_info[key] = self.__dict__[key]
         else:
             update_info[key] = old_user[key]
     
-    print('update_info', update_info)
+    print("update_info", update_info)
     user_record = auth.update_user(**update_info)
     return self.user_record_to_user(user_record)

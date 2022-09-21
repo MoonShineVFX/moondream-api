@@ -29,8 +29,8 @@ class LoginUser(BaseResource):
         try:
             email, password = self.parse_request_authorization()
             user = client_auth.sign_in_with_email_and_password(email, password)
-            id_token = user['idToken']
-            user['uid'] = user['localId']
+            id_token = user["idToken"]
+            user["uid"] = user["localId"]
 
             expires_in = datetime.timedelta(days=5)
             session_cookie = auth.create_session_cookie(
@@ -63,7 +63,7 @@ class CreateAdmin(BaseResource):
     def post(self, user_id, email):
         try:
             user: FirebaseUser = self.parse_request_form(CreateUserSechma())
-            user.custom_claims = {"role": ROLE['admin']}
+            user.custom_claims = {"role": ROLE["admin"]}
             user.email_verified = True
             user.create_user()
             return self.handle_success_response(data=CreateUserSechma().dump(user.__dict__))
@@ -75,7 +75,7 @@ class CreateSuperuser(BaseResource):
     def post(self):
         try:
             user: FirebaseUser = self.parse_request_form(CreateUserSechma())
-            user.custom_claims = {"role": ROLE['superuser']}
+            user.custom_claims = {"role": ROLE["superuser"]}
             user.email_verified = True
             user.create_user()
             return self.handle_success_response(data=CreateUserSechma().dump(user.__dict__))

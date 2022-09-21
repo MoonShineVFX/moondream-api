@@ -33,7 +33,7 @@ class MediaFile:
     def query_by_timestamp(self, begin, end):
         begin = int(begin) or int(datetime.combine(datetime.now(), time.min).timestamp())
         end = end(int) or int(datetime.combine(datetime.now(), time.max).timestamp())
-        ref = file_col.where('create', '>=', begin).where('create', '<=', end).order_by("create", direction=firestore.Query.DESCENDING).get()
+        ref = file_col.where("create", ">=", begin).where("create", "<=", end).order_by("create", direction=firestore.Query.DESCENDING).get()
         docs = [doc.to_dict() for doc in ref]
         return docs
     
@@ -48,9 +48,9 @@ def upload_file_to_storage(resource_path, destination_path):
 
 
 def create_thumb_name(name):
-    arr = name.rsplit('.', 1)
-    arr[0] += '_thumb'
-    return '.'.join(arr)
+    arr = name.rsplit(".", 1)
+    arr[0] += "_thumb"
+    return ".".join(arr)
 
 def create_thumb_of_image(filename,  destination_prefix) -> str:
     thumb_filename = create_thumb_name(filename)
@@ -64,7 +64,7 @@ def create_thumb_of_image(filename,  destination_prefix) -> str:
 
 
 def handle_file_upload(file, user_id, create, session_id=""):
-    file_ext = file.filename.rsplit('.', 1)[1].lower()
+    file_ext = file.filename.rsplit(".", 1)[1].lower()
 
     type = None
     if file_ext in ALLOWED_IMAGE_EXTENSIONS:
@@ -76,7 +76,7 @@ def handle_file_upload(file, user_id, create, session_id=""):
     
     filename = file.filename
     file.save(filename)
-    destination_prefix = '/'.join([FILE_COLLECTION_NAME, type, ''])
+    destination_prefix = "/".join([FILE_COLLECTION_NAME, type, ""])
     # handle original image
     blob = upload_file_to_storage(filename, destination_prefix + filename)
 

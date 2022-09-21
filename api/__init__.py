@@ -23,7 +23,7 @@ def create_app():
     
     api.add_resource(file.ListFiles, "/file/list_files", "/file/list_files")
     api.add_resource(file.DownloadFiles, "/file/download_files", "/file/download_files")
-    api.add_resource(file.DeleteFiles, '/file/delete_files', '/file/delete_files')
-    api.add_resource(file.UploadFiles, '/file/upload_files', '/file/upload_files')
+    api.add_resource(file.DeleteFiles, "/file/delete_files", "/file/delete_files")
+    api.add_resource(file.UploadFiles, "/file/upload_files", "/file/upload_files")
 
     return app
