@@ -1,27 +1,27 @@
 import os
-from flask import request, jsonify
+from flask import request
 from functools import wraps
 from firebase_admin import auth
 
-from .utils import handle_errors_response, error_format
+from api.constants import ROLE
 
-SESSION_ID_NAME = os.getenv('SESSION_ID_NAME')
+from .utils import base_response
 
+SESSION_ID_NAME = os.getenv("SESSION_ID_NAME")
 
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         session_cookie = request.cookies.get(SESSION_ID_NAME)
         if not session_cookie:
-            return jsonify(error_format(message='Unauthorized')), 401
+            return base_response(401, message="Unauthorized")
 
         try:
             decoded_claims = auth.verify_session_cookie(
                 session_cookie, check_revoked=True)
-            print('decoded_claims', decoded_claims)
-            return f(*args, **kwargs, user_id=decoded_claims['user_id'], email=decoded_claims['email'])
+            return f(*args, **kwargs, user_id=decoded_claims["user_id"], email=decoded_claims["email"])
         except Exception as e:
-            return handle_errors_response(e)
+            return base_response(401, message="Unauthorized")
     return decorated_function
 
 
@@ -30,15 +30,34 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         session_cookie = request.cookies.get(SESSION_ID_NAME)
         if not session_cookie:
-            return jsonify(error_format(message='Unauthorized')), 401
-        # try:
-        decoded_claims = auth.verify_session_cookie(
-            session_cookie, check_revoked=True)
-        print('decoded_claims', decoded_claims)
-        if decoded_claims['is_admin'] == True:
-            return f(*args, **kwargs, user_id=decoded_claims['user_id'], email=decoded_claims['email'])
-        else:
-            return jsonify(error_format(message='Unauthorized')), 401
-        # except Exception as e:
-        #     return handle_errors_response(e)
+            return base_response(401, message="Unauthorized")
+        try:
+            decoded_claims = auth.verify_session_cookie(
+                session_cookie, check_revoked=True)
+            role = decoded_claims["role"]
+            if role == ROLE["admin"] or role == ROLE["superuser"]:
+                return f(*args, **kwargs, user_id=decoded_claims["user_id"], email=decoded_claims["email"])
+            else:
+                return base_response(403, message="Forbidden")
+        except Exception as e:
+            return base_response(400, message=str(e))
+    return decorated_function
+
+
+def superuser_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        session_cookie = request.cookies.get(SESSION_ID_NAME)
+        if not session_cookie:
+            return base_response(401, message="Unauthorized")
+        try:
+            decoded_claims = auth.verify_session_cookie(
+                session_cookie, check_revoked=True)
+            role = decoded_claims["role"]
+            if role == ROLE["superuser"]:
+                return f(*args, **kwargs, user_id=decoded_claims["user_id"], email=decoded_claims["email"])
+            else:
+                return base_response(403, message="Forbidden")
+        except Exception as e:
+            return base_response(400, message=str(e))
     return decorated_function

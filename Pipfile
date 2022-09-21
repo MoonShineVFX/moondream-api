@@ -12,6 +12,7 @@ marshmallow = "*"
 flask-marshmallow = "*"
 python-dotenv = "*"
 pyrebase4 = "*"
+flask-restful = "*"
 
 [dev-packages]
 autopep8 = "*"

@@ -1,30 +1,29 @@
-import os
-from flask import Flask, json
-from firebase_admin import credentials, initialize_app
-import pyrebase
+import logging
+from flask import Flask
+from flask_restful import Api
+import firebase
 
-APP_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ENV_MODE = os.getenv('ENV_MODE')
-firebase_config_path = os.path.join(APP_ROOT,  "firebase",  f"firebase_config_{ENV_MODE}.json")
-print(firebase_config_path)
-firebae_config = json.load(open(firebase_config_path))
-firebase_client = pyrebase.initialize_app(config=firebae_config)
-
-
-cred = credentials.Certificate(f'firebase/service_account_{ENV_MODE}.json')
-default_app = initialize_app(cred, {
-    'storageBucket': 'moondream-reality.appspot.com' if ENV_MODE == 'dev' else f'moondream-reality-prod.appspot.com'
-})
+from .resources import user, file
 
 
 def create_app():
-    app = Flask(__name__)
-    app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
     
-    from .user.resource import user_api
-    from .session.resource import session_api
-    print(firebase_client.api_key, default_app.project_id)
-    app.register_blueprint(user_api)
-    app.register_blueprint(session_api)
+    
+    app = Flask(__name__)
+    api = Api(app)
+    
+    api.add_resource(user.CreateSuperuser, "/warning/create_superuser", "/warning/create_superuser")
+    api.add_resource(user.DeleteAllUsers, "/warning/delete_all_users", "/warning/delete_all_users")
+    api.add_resource(user.LoginUser, "/user/login", "/user/login")
+    api.add_resource(user.CreateAdmin, "/user/create_admin", "/user/create_admim")
+    api.add_resource(user.ListUsers, "/user/list_users", "/user/list_users")
+    api.add_resource(user.UpdateUser, "/user/update_user", "/user/update_user") # bug
+    api.add_resource(user.ResetPassword, "/user/reset_password", "/user/reset_password")
+    api.add_resource(user.DeleteUser, "/user/delete_user", "/user/delete_user")
+    
+    api.add_resource(file.ListFiles, "/file/list_files", "/file/list_files")
+    api.add_resource(file.DownloadFiles, "/file/download_files", "/file/download_files")
+    api.add_resource(file.DeleteFiles, "/file/delete_files", "/file/delete_files")
+    api.add_resource(file.UploadFiles, "/file/upload_files", "/file/upload_files")
 
     return app
