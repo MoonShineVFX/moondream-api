@@ -5,12 +5,12 @@ ROLE = {
     "client":"client"
 }
 
-FILE_COLLECTION_NAME = 'files'
+FILE_COLLECTION_NAME = "files"
 THUMBNAIL_SIZE = 4
-IMAGE_TYPE = 'image'
-VIDEO_TYPE = 'video'
+IMAGE_TYPE = "image"
+VIDEO_TYPE = "video"
 
-ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 ALLOWED_VIDEO_EXTENSIONS = {
     "3g2",
     "3gp",

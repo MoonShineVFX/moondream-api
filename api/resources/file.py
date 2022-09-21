@@ -23,7 +23,7 @@ class ListFiles(BaseResource):
             print(form)
             begin = int(begin) or int(datetime.combine(datetime.now(), time.min).timestamp())
             end = end(int) or int(datetime.combine(datetime.now(), time.max).timestamp())
-            ref = file_col.where('create', '>=', begin).where('create', '<=', end).order_by("create", direction=firestore.Query.DESCENDING).get()
+            ref = file_col.where("create", ">=", begin).where("create", "<=", end).order_by("create", direction=firestore.Query.DESCENDING).get()
             docs = [doc.to_dict() for doc in ref]
             return self.handle_success_response(data={"list": docs})
         except Exception as e:
@@ -36,14 +36,14 @@ class DownloadFiles(BaseResource):
             form = self.parse_request_form(PathsOfFilesSchema())
             memory_file = io.BytesIO()
             compress_type = zipfile.ZIP_DEFLATED
-            with zipfile.ZipFile(memory_file, 'w') as zf:
-                for path in form['paths']:
-                    file_name = path.rsplit('/', 1)[1]
+            with zipfile.ZipFile(memory_file, "w") as zf:
+                for path in form["paths"]:
+                    file_name = path.rsplit("/", 1)[1]
                     blob = bucket.blob(path)
                     data = blob.download_as_bytes()
                     zf.writestr(file_name, data=data,compress_type=compress_type)
             memory_file.seek(0)
-            return send_file(memory_file, download_name='capsule.zip', as_attachment=True)
+            return send_file(memory_file, download_name="capsule.zip", as_attachment=True)
         except Exception as e:
             return self.handle_errors_response(e)
         
@@ -52,8 +52,8 @@ class DeleteFiles(BaseResource):
     def post(self, *args, **kwargs):
         try:
             form = self.parse_request_form()
-            paths = form['paths']
-            file_docs = file_col.where('path', 'in', paths).get()
+            paths = form["paths"]
+            file_docs = file_col.where("path", "in", paths).get()
             for doc in file_docs:
                 doc.delete()
                 
@@ -74,7 +74,7 @@ class UploadFiles(BaseResource):
     def post(self, user_id, email):
         try:
             form = self.parse_request_form(UploadFilesSchema())
-            session_id = form['session_id'] or ""
+            session_id = form["session_id"] or ""
             files = self.parse_request_files()
             create = int(datetime.now().timestamp())
             
@@ -82,7 +82,7 @@ class UploadFiles(BaseResource):
             for file in files:
                 datas.append(handle_file_upload(file, user_id, create, session_id))
             
-            return self.handle_success_response(data={'list': datas})
+            return self.handle_success_response(data={"list": datas})
         except Exception as e:
             return self.handle_errors_response(e)
         
