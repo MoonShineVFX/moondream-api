@@ -17,9 +17,6 @@ jobs:
         if: github.ref_name != 'master'
         run: |
           echo "ENV_MODE=dev" >> $GITHUB_ENV
-      - name: Change SERVICE_NAME
-        run: |
-          echo "SERVICE_NAME=$SERVICE_NAME-$ENV_MODE" >> $GITHUB_ENV
       - name: Create variables
         id: vars
         run: |
@@ -54,5 +51,5 @@ jobs:
           service: ${{ env.SERVICE_NAME }}
           source: .
           region: asia-east1
-          credentials: ${{ secrets.MOONDREAM_DEV_GCP_SA_KEY }}
+          credentials: ${{ secrets[steps.vars.outputs.GCPSA_CRED] }}
           env_vars: ENV_MODE=${{ env.ENV_MODE }},STORAGE_BUCKET=${{ secrets[steps.vars.outputs.STORAGE_BUCKET_KEY] }}
