@@ -1,9 +1,9 @@
 SESSION_ID_NAME = "mdra-session"
-ROLE = {
-    "superuser":"superuser",
-    "admin":"admin",
-    "client":"client"
-}
+
+class Role:
+    SUPERUSER = "superuser"
+    ADMIN = "admin"
+    CLIENT = "client"
 
 FILE_COLLECTION_NAME = "files"
 THUMBNAIL_SIZE = 4
