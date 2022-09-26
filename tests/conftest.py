@@ -11,3 +11,4 @@ def test_client():
         # Establish an application context
         with flask_app.app_context():
             yield testing_client  # this is where the testing happens!
+            

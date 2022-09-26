@@ -12,5 +12,6 @@ def base_response(status_code, message="", errors=[], data={}) -> Response:
     })
     
     response.status_code = status_code
+    response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
