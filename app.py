@@ -4,6 +4,7 @@ from flask_restful import Api
 from api.resources import user, file
 from api import routes
 
+
 def create_app():
     app = Flask(__name__)
     api = Api(app)
@@ -28,6 +29,8 @@ def create_app():
     return app
 
 
+app = create_app()
+
+
 if __name__ == "__main__":
-    app = create_app()
     app.run(debug=True)
