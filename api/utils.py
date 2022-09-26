@@ -1,5 +1,4 @@
-from flask import jsonify, Response, request
-from firebase_admin import auth
+from flask import jsonify, Response
 
 
 def base_response(status_code, message="", errors=[], data={}) -> Response:
