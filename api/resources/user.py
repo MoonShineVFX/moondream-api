@@ -50,7 +50,8 @@ class LoginUser(UserBaseResource):
             # create response
             response = self.handle_success_response(data=data)
             response.set_cookie(SESSION_ID_NAME, session_cookie,
-                                expires=expires, httponly=True, secure=False)
+                                expires=expires, httponly=True, secure=False, samesite=None)
+             
             return response
         except Exception as e:
             return self.handle_errors_response(e)
@@ -91,7 +92,7 @@ class ResetCurrentUserPassword(BaseResource):
     def post(self, user_id, email):
         try:
             url = auth.generate_password_reset_link(email=email)
-            print(url)
+            # print(url)
             return redirect(url)
         except Exception as e:
             return self.handle_errors_response(e)
@@ -108,10 +109,10 @@ class UpdateUser(UserBaseResource):
             for key, value in json_dict.items():
                 if value:
                     user_record_dict[key] = value
-            print("before", user_record_dict)
+            # print("before", user_record_dict)
             new_user_record = auth.update_user(**user_record_dict)
             user_record_dict = self.get_user_record_dict(new_user_record)
-            print("after", user_record_dict)
+            # print("after", user_record_dict)
             data = UidRequiredSechma().dump(user_record_dict)
             
             return self.handle_success_response(data=data)

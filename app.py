@@ -4,10 +4,19 @@ from flask_cors import CORS
 from api.resources import user, file
 from api import routes
 
+app = Flask(__name__)
+
+
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    resource = {
+        r'/api/': {
+            'origins': "*"
+        }
+    }
+    
+    CORS(app, resources=resource, supports_credentials=True, allow_headers='*')
     api = Api(app)
     
     # user
