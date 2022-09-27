@@ -1,4 +1,4 @@
-from flask import jsonify, Response
+from flask import jsonify, Response, request
 
 
 def base_response(status_code, message="", errors=[], data={}) -> Response:
@@ -11,6 +11,9 @@ def base_response(status_code, message="", errors=[], data={}) -> Response:
     })
     
     response.status_code = status_code
-    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add("Access-Control-Allow-Origin", request.referrer[:-1])
+    response.headers.add("Access-Control-Allow-Methods", "*")
+    response.headers.add("Access-Control-Allow-Credentials", "true")
+    
     return response
 

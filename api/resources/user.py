@@ -1,5 +1,5 @@
 import datetime
-from flask import redirect
+from flask import redirect, request
 from firebase_admin import auth
 from firebase_admin.auth import UserRecord
 
@@ -46,12 +46,10 @@ class LoginUser(UserBaseResource):
             expires_in = datetime.timedelta(days=5)
             expires = datetime.datetime.now() + expires_in
             session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
-            
             # create response
             response = self.handle_success_response(data=data)
             response.set_cookie(SESSION_ID_NAME, session_cookie,
                                 expires=expires, httponly=True, secure=True, samesite=None)
-             
             return response
         except Exception as e:
             return self.handle_errors_response(e)
