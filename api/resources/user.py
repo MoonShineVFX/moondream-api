@@ -50,7 +50,7 @@ class LoginUser(UserBaseResource):
             # create response
             response = self.handle_success_response(data=data)
             response.set_cookie(SESSION_ID_NAME, session_cookie,
-                                expires=expires, httponly=True, secure=False, samesite=None)
+                                expires=expires, httponly=True, secure=True, samesite=None)
              
             return response
         except Exception as e:
