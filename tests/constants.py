@@ -1,0 +1,5 @@
+SUPERUSER_EMAIL="superuser@gmail.com"
+ADMIN_1_EMAIL="admin1@gamil.com"
+ADMIN_2_EMAIL="admin2@gamil.com"
+PASSWORD="000000"
+PASSWORD1="111111"
