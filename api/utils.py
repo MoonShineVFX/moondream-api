@@ -11,7 +11,8 @@ def base_response(status_code, message="", errors=[], data={}) -> Response:
     })
     
     response.status_code = status_code
-    response.headers.add("Access-Control-Allow-Origin", request.referrer[:-1])
+    referrer = request.referrer[:-1] if request.referrer else "*"
+    response.headers.add("Access-Control-Allow-Origin", referrer)
     response.headers.add("Access-Control-Allow-Methods", "*")
     response.headers.add("Access-Control-Allow-Credentials", "true")
     
