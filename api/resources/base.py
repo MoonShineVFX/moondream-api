@@ -37,6 +37,7 @@ class BaseResource(Resource):
         return base_response(status_code=status_code, message=default_message)
 
     def handle_errors_response(self, e):
+        
         if e.__class__ == FirebaseError:
             return self.firebase_error_response(e)
         elif e.__class__ == ValidationError:

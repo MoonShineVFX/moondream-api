@@ -1,5 +1,6 @@
 import datetime
-from flask import redirect, request
+import re
+from flask import redirect, json
 from firebase_admin import auth
 from firebase_admin.auth import UserRecord
 
@@ -8,6 +9,7 @@ from ..constants import SESSION_ID_NAME, Role
 from ..schemas.user import CreateUserSechma, UidRequiredSechma, UserBaseSechma
 from ..decoration import login_required, admin_required, superuser_required
 from ..firebase import firebase_client
+from ..utils import base_response
 client_auth = firebase_client.auth()
 
 
@@ -66,7 +68,10 @@ class LoginUser(UserBaseResource):
                                 expires=expires, httponly=True, secure=True, samesite="None")
             return response
         except Exception as e:
-            return self.handle_errors_response(e)
+            e_dict = json.loads(re.search('({(.|\s)*})', str(e)).group(0).replace("'", '"'))
+            error = e_dict['error']
+           
+            return base_response(status_code=error['code'], message=error['message'])
       
         
 class LogoutUser(BaseResource):
