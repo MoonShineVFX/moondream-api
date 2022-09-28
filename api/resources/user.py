@@ -64,8 +64,7 @@ class LoginUser(UserBaseResource):
             session_cookie = auth.create_session_cookie(id_token, expires_in=expires_in)
             # create response
             response = self.handle_success_response(data=data)
-            response.set_cookie(SESSION_ID_NAME, session_cookie,
-                                expires=expires, httponly=True, secure=True, samesite="None")
+            response.set_cookie(SESSION_ID_NAME, session_cookie, expires=expires, httponly=True, secure=True, samesite="None")
             return response
         except Exception as e:
             e_dict = json.loads(re.search('({(.|\s)*})', str(e)).group(0).replace("'", '"'))
@@ -79,7 +78,7 @@ class LogoutUser(BaseResource):
     def post(self, *args, **kwargs):
         try:
             response = self.handle_success_response()
-            response.set_cookie(SESSION_ID_NAME, "", expires=0)
+            response.set_cookie(SESSION_ID_NAME, "", expires=0, httponly=True, secure=True, samesite="None")
             return response
         except Exception as e:
             return self.handle_errors_response(e)
@@ -103,6 +102,15 @@ class CreateAdmin(UserBaseResource):
         except Exception as e:
             return self.handle_errors_response(e)
             
+
+class CreateClient(UserBaseResource):
+    @admin_required
+    def post(self, user_id, email):
+        try:
+            data = self.create_user(Role.CLIENT)
+            return self.handle_success_response(status_code=201, data=data)
+        except Exception as e:
+            return self.handle_errors_response(e)
 
 class ResetCurrentUserPassword(BaseResource):
     @login_required

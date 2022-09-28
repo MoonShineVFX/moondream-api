@@ -21,6 +21,7 @@ def create_app():
     api.add_resource(user.LoginUser, routes.USER_LOGIN, routes.USER_LOGIN)
     api.add_resource(user.LogoutUser, routes.USER_LOGOUT, routes.USER_LOGOUT)
     api.add_resource(user.CreateAdmin, routes.USER_CREATE_ADMIN, routes.USER_CREATE_ADMIN)
+    api.add_resource(user.CreateClient, routes.USER_CREATE_CLIENT, routes.USER_CREATE_CLIENT)
     api.add_resource(user.ListUsers, routes.USER_LIST_USERS, routes.USER_LIST_USERS)
     api.add_resource(user.UpdateUser, routes.USER_UPDATE_USER, routes.USER_UPDATE_USER)
     api.add_resource(user.ResetCurrentUserPassword, routes.USER_RESET_CURRENT_USER_PASSWORD, routes.USER_RESET_CURRENT_USER_PASSWORD)
