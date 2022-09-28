@@ -20,6 +20,8 @@ class UserBaseResource(BaseResource):
             "uid": user.uid
         }
     
+    
+    
     def create_user(self, role):
         json_dict = self.parse_request_json(CreateUserSechma())
         email_verified = role != Role.CLIENT
@@ -29,6 +31,18 @@ class UserBaseResource(BaseResource):
         superuser = auth.get_user(uid=user.uid)
         user_record_dict = self.get_user_record_dict(superuser)
         return CreateUserSechma().dump(user_record_dict)
+    
+
+class GetUser(UserBaseResource):
+    @login_required
+    def post(self, user_id, email):
+        try:
+            user = auth.get_user(uid=user_id)
+            user_record_dict = self.get_user_record_dict(user)
+            data = UserBaseSechma().dump(user_record_dict)
+            return self.handle_success_response(data=data)
+        except Exception as e:
+            return self.handle_errors_response(e)
     
       
 class LoginUser(UserBaseResource):

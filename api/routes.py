@@ -1,6 +1,7 @@
 # User routes
 USER_CREATE_SUPERUSER = "/api/warning/create_superuser"
 USER_DELETE_ALL_USERS = "/api/warning/delete_all_users"
+USER_GET_USER = "/api/user/get_user"
 USER_LOGIN = "/api/user/login"
 USER_LOGOUT = "/api/user/logout"
 USER_CREATE_ADMIN = "/api/user/create_admin"

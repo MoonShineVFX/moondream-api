@@ -17,6 +17,7 @@ def create_app():
     # user
     api.add_resource(user.CreateSuperuser, routes.USER_CREATE_SUPERUSER, routes.USER_CREATE_SUPERUSER)
     api.add_resource(user.DeleteAllUsers, routes.USER_DELETE_ALL_USERS, routes.USER_DELETE_ALL_USERS)
+    api.add_resource(user.GetUser, routes.USER_GET_USER, routes.USER_GET_USER )
     api.add_resource(user.LoginUser, routes.USER_LOGIN, routes.USER_LOGIN)
     api.add_resource(user.LogoutUser, routes.USER_LOGOUT, routes.USER_LOGOUT)
     api.add_resource(user.CreateAdmin, routes.USER_CREATE_ADMIN, routes.USER_CREATE_ADMIN)
