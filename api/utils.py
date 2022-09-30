@@ -17,4 +17,3 @@ def base_response(status_code, message="", errors=[], data={}) -> Response:
     response.headers.add("Access-Control-Allow-Credentials", "true")
     
     return response
-
