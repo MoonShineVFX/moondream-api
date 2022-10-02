@@ -3,7 +3,7 @@ from flask import send_file
 
 from .base import BaseResource
 from ..decoration import admin_required, login_required
-from ..schemas.file import FileQuerySchema, PathsOfFilesSchema, UploadFilesSchema
+from ..schemas.file import FileSchema, FileQuerySchema, PathsOfFilesSchema, UploadFilesSchema
 from ..firebase import FirebaseFile
 
 class ListFiles(BaseResource, FirebaseFile):
@@ -37,7 +37,6 @@ class DeleteFiles(BaseResource, FirebaseFile):
         try:
             json_dict = self.parse_request_json(PathsOfFilesSchema())
             paths = set(json_dict["paths"])
-            self.delete_documents(paths)
             self.delete_files(paths)
             return self.handle_success_response()
         except Exception as e:
@@ -48,11 +47,27 @@ class UploadFiles(BaseResource, FirebaseFile):
     def post(self, user_id, email):
         try:
             files = self.parse_request_files()
+            if not self.is_image_or_video_files(files):
+                raise TypeError("Only images and videos are allowed")
+            
             form_dict = self.parse_request_form(UploadFilesSchema())
             session_id = form_dict["session_id"] or ""
+            create = int(datetime.now().timestamp())
             
-            list = self.upload_files(files, user_id, session_id)
-            return self.handle_success_response(data={"list": list})
+            list = []
+            for file in files:
+                file_dict=None
+                if file.content_type.startswith('image'):
+                    file_dict = self.handle_image(file, create, user_id, session_id)
+                elif file.content_type.startswith('video'):
+                    file_dict = self.handle_video(file, create, user_id, session_id)
+                    
+                json_dict = FileSchema().dump(file_dict)
+                self.create_file_document_to_firestore(json_dict)
+                list.append(json_dict)
+                
+            return self.handle_success_response(status_code=201, data={"list": list})
         except Exception as e:
             return self.handle_errors_response(e)
         
+

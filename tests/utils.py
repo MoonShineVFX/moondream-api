@@ -1,7 +1,11 @@
 import base64
+import io
+from PIL import Image
 from flask import json
+
 from api.firebase import FirebaseUser, FirebaseFile
-from api.constants import SESSION_ID_NAME, Role
+from api.constants import IMAGE_TYPE, SESSION_ID_NAME, Role
+from tests.test_file_delete_files import delete_files
 
 
 WRONG_EMAIL_FORMAT = "wrong_email_format"
@@ -9,7 +13,7 @@ SUPERUSER_0 = "superuser_0@gmail.com"
 SUPERUSER_1 = "superuser_1@gmail.com"
 SUPERUSER_2 = "superuser_2@gmail.com"
 ADMIN_0 = "admin_0@gamil.com"
-CLIENT_1 = "admin_1@gamil.com"
+ADMIN_1 = "admin_1@gamil.com"
 ADMIN_2 = "admin_2@gamil.com"
 CLIENT_0 = "client_0@gmail.com"
 CLIENT_1 = "client_1@gmail.com"
@@ -17,6 +21,9 @@ CLIENT_2 = "client_2@gmail.com"
 PASSWORD_0 = "000000"
 PASSWORD_1 = "111111"
 PASSWORD_2 = "222222"
+IMAGE_0 = "0.png"
+IMAGE_1 = "1.png"
+
 
 
 def f_login_user(test_client, email, password):
@@ -58,3 +65,15 @@ def load_data(json_data):
 
 def f_list_file():
     return FirebaseFile().get_files(begin=1, end=9999999999999999)
+
+
+def f_create_image():
+    memory_file = io.BytesIO()
+    pil_image = Image.new(mode="RGB", size=(400, 400), color="blue")
+    pil_image.save(memory_file, format="PNG")
+    memory_file.seek(0)
+    return memory_file
+
+def f_delete_file(names):
+    paths = [FirebaseFile().get_destination_path(type=IMAGE_TYPE, name=name) for name in names]
+    FirebaseFile().delete_files(paths)
