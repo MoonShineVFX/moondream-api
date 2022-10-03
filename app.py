@@ -32,6 +32,7 @@ def create_app():
     api.add_resource(file.DownloadFilesInZip, routes.FILE_DOWNLOAD_ZIP, routes.FILE_DOWNLOAD_ZIP)
     api.add_resource(file.DeleteFiles, routes.FILE_DELETE_FILES, routes.FILE_DELETE_FILES)
     api.add_resource(file.UploadFiles, routes.FILE_UPLOAD_FILES, routes.FILE_UPLOAD_FILES)
+    api.add_resource(file.UploadFile, routes.FILE_UPLOAD_FILE, routes.FILE_UPLOAD_FILE)
 
     return app
 

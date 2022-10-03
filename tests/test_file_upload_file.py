@@ -7,11 +7,11 @@ from .utils import CLIENT_0, IMAGE_0, IMAGE_1,  PASSWORD_0,  SUPERUSER_0, ADMIN_
 def upload_files(test_client, **kwargs):
     data = {
         **kwargs,
-        "files": [(f_create_image(), IMAGE_0), (f_create_image(), IMAGE_1)]
+        "file": (f_create_image(), IMAGE_0)
     }
     
     return test_client.post(
-        routes.FILE_UPLOAD_FILES, 
+        routes.FILE_UPLOAD_FILE, 
         content_type='multipart/form-data',
         data=data
         )
@@ -35,7 +35,7 @@ def test_by_client(test_client):
 def test_by_admin(test_client):
     res = upload_by_user(test_client, ADMIN_0, PASSWORD_0)
     assert res.status_code == 201
-    f_delete_files(names=[IMAGE_0, IMAGE_1])
+    f_delete_files(names=[IMAGE_0])
     
 
 def test_by_superuser_with_wrong_attribute(test_client):
@@ -45,5 +45,5 @@ def test_by_superuser_with_wrong_attribute(test_client):
 def test_by_superuser(test_client):
     res = upload_by_user(test_client, SUPERUSER_0, PASSWORD_0)
     assert res.status_code == 201
-    f_delete_files(names=[IMAGE_0, IMAGE_1])
+    f_delete_files(names=[IMAGE_0])
     

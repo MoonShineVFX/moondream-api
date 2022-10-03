@@ -71,3 +71,26 @@ class UploadFiles(BaseResource, FirebaseFile):
             return self.handle_errors_response(e)
         
 
+class UploadFile(BaseResource, FirebaseFile):
+    @admin_required
+    def post(self, user_id, email):
+        try:
+            file = self.parse_request_file()
+            if not self.is_image_or_video_files(files=[file]):
+                raise TypeError("Only images and videos are allowed")
+            
+            form_dict = self.parse_request_form(UploadFilesSchema())
+            session_id = form_dict["session_id"] or ""
+            create = int(datetime.now().timestamp())
+            
+            file_dict=None
+            if file.content_type.startswith('image'):
+                file_dict = self.handle_image(file, create, user_id, session_id)
+            elif file.content_type.startswith('video'):
+                file_dict = self.handle_video(file, create, user_id, session_id)
+                
+            json_dict = FileSchema().dump(file_dict)
+            self.create_file_document_to_firestore(json_dict)
+            return self.handle_success_response(status_code=201, data=json_dict)
+        except Exception as e:
+            return self.handle_errors_response(e)

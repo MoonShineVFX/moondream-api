@@ -5,7 +5,6 @@ from flask import json
 
 from api.firebase import FirebaseUser, FirebaseFile
 from api.constants import IMAGE_TYPE, SESSION_ID_NAME, Role
-from tests.test_file_delete_files import delete_files
 
 
 WRONG_EMAIL_FORMAT = "wrong_email_format"
@@ -74,6 +73,7 @@ def f_create_image():
     memory_file.seek(0)
     return memory_file
 
-def f_delete_file(names):
+def f_delete_files(names):
     paths = [FirebaseFile().get_destination_path(type=IMAGE_TYPE, name=name) for name in names]
+    print(paths)
     FirebaseFile().delete_files(paths)

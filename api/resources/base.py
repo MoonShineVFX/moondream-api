@@ -21,6 +21,9 @@ class BaseResource(Resource):
     def parse_request_files(self, key="files"):
         return request.files.getlist(key) or []
     
+    def parse_request_file(self, key="file"):
+        return request.files.get(key)
+    
     def parse_request_form(self, schema):
         form = request.form.to_dict() or {}
         return schema.load(form)
