@@ -6,19 +6,6 @@ on:
       env_input:
         type: string
         required: true
-    secrets:
-      JSON_FIREBASE:
-        required: true
-      JSON_GCP:
-        required: true
-      GCP_REGION:
-        required: true
-      GCP_SA_KEY:
-        required: true
-      RUN_IMAGE_TAG:
-        required: true
-      RUN_SERVICE_NAME:
-        required: true
 
 jobs:
   deploy:
