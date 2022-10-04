@@ -1,119 +1,164 @@
-import datetime
+import re
 from flask import redirect, json
-from firebase_admin import auth
-from api.constants import SESSION_ID_NAME, ROLE
-
-from api.models.user import FirebaseUser
 
 from .base import BaseResource
-from ..schemas.user import CreateUserSechma, UidRequiredSechma, UserBaseSechma
-from ..decoration import login_required, admin_required, superuser_required
-from ..firebase import firebase_client
-client_auth = firebase_client.auth()
+from api.constants import SESSION_ID_NAME, Role
+from api.schemas.user import CreateUserSechma, UidRequiredSechma, UserBaseSechma
+from api.decoration import login_required, admin_required, superuser_required
+from api.firebase import FirebaseUser
+
+from ..utils import base_response
 
 
-
-
-class ResetPassword(BaseResource):
+class GetUser(BaseResource, FirebaseUser):
     @login_required
     def post(self, user_id, email):
         try:
-            url = auth.generate_password_reset_link(email=email)
-            return redirect(url)
+            user = self.get_user(user_id)
+            data = UserBaseSechma().dump(user)
+            return self.handle_success_response(data=data)
         except Exception as e:
             return self.handle_errors_response(e)
-
-        
-class LoginUser(BaseResource):
+    
+      
+class LoginUser(BaseResource, FirebaseUser):
     def post(self):
         try:
             email, password = self.parse_request_authorization()
-            user = client_auth.sign_in_with_email_and_password(email, password)
-            id_token = user["idToken"]
-            user["uid"] = user["localId"]
-
-            expires_in = datetime.timedelta(days=5)
-            session_cookie = auth.create_session_cookie(
-                id_token, expires_in=expires_in)
-
-            response = self.handle_success_response(data=user)
-            response.status_code = 200
-            expires = datetime.datetime.now() + expires_in
-            response.set_cookie(SESSION_ID_NAME, session_cookie,
-                                expires=expires, httponly=True, secure=False)
+            user, id_token = self.login_user(email, password)
+            data = UserBaseSechma().dump(user)
+            
+            response = self.handle_success_response(data=data)
+            cookie = self.create_session_cookie(SESSION_ID_NAME,id_token, 5)
+            response.set_cookie(**cookie)
+            return response
+          
+        except Exception as e:
+            e_dict = json.loads(re.search('({(.|\s)*})', str(e)).group(0).replace("'", '"'))
+            error = e_dict['error']
+           
+            return base_response(status_code=error['code'], message=error['message'])
+      
+        
+class LogoutUser(BaseResource, FirebaseUser):
+    @login_required
+    def post(self, *args, **kwargs):
+        try:
+            cookie = self.disable_session_cookie(SESSION_ID_NAME)
+            response = self.handle_success_response()
+            response.set_cookie(**cookie)
             return response
         except Exception as e:
             return self.handle_errors_response(e)
-      
-        
-class UpdateUser(BaseResource):
-    @superuser_required
-    def post(self, user_id, email):
+            
+            
+class CreateSuperuser(BaseResource, FirebaseUser):
+    def post(self):
         try:
-            user: FirebaseUser = self.parse_request_form(UidRequiredSechma())
-            user.update_user()
-            return self.handle_success_response(data=UidRequiredSechma().dump(user.__dict__))
+            json_dict = self.parse_request_json(CreateUserSechma())
+            user = self.create_user(
+                    role=Role.SUPERUSER,
+                    email=json_dict['email'],
+                    password=json_dict['password'] ,
+                    email_verified=True
+                )
+            data = CreateUserSechma().dump(user)
+            return self.handle_success_response(status_code=201, data=data)
         except Exception as e:
             return self.handle_errors_response(e)
 
-        
-        
-class CreateAdmin(BaseResource):
+
+class CreateAdmin(BaseResource, FirebaseUser):
     @superuser_required
     def post(self, user_id, email):
         try:
-            user: FirebaseUser = self.parse_request_form(CreateUserSechma())
-            user.custom_claims = {"role": ROLE["admin"]}
-            user.email_verified = True
-            user.create_user()
-            return self.handle_success_response(data=CreateUserSechma().dump(user.__dict__))
+            json_dict = self.parse_request_json(CreateUserSechma())
+            user = self.create_user(
+                    role=Role.ADMIN,
+                    email=json_dict['email'],
+                    password=json_dict['password'] ,
+                    email_verified=True
+                )
+            data = CreateUserSechma().dump(user)
+            return self.handle_success_response(status_code=201, data=data)
         except Exception as e:
             return self.handle_errors_response(e)
             
 
-class CreateSuperuser(BaseResource):
-    def post(self):
-        try:
-            user: FirebaseUser = self.parse_request_form(CreateUserSechma())
-            user.custom_claims = {"role": ROLE["superuser"]}
-            user.email_verified = True
-            user.create_user()
-            return self.handle_success_response(data=CreateUserSechma().dump(user.__dict__))
-        except Exception as e:
-            return self.handle_errors_response(e)
-
-class ListUsers(BaseResource):
+class CreateClient(BaseResource, FirebaseUser):
     @admin_required
     def post(self, user_id, email):
-        
         try:
-            user = FirebaseUser(uid=user_id, email=email)
-            users = user.get_users()
-            return self.handle_success_response(data={"list": UserBaseSechma(many=True).dump(users)})
+            json_dict = self.parse_request_json(CreateUserSechma())
+            user = self.create_user(
+                    role=Role.CLIENT,
+                    email=json_dict['email'],
+                    password=json_dict['password'] ,
+                    email_verified=False
+                )
+            data = CreateUserSechma().dump(user)
+            return self.handle_success_response(status_code=201, data=data)
         except Exception as e:
             return self.handle_errors_response(e)
 
-class DeleteAllUsers(BaseResource):
+
+class ResetCurrentUserPassword(BaseResource, FirebaseUser):
+    @login_required
+    def post(self, user_id, email):
+        try:
+            url = self.reset_password(email)
+            return redirect(url)
+        except Exception as e:
+            return self.handle_errors_response(e)
+
+  
+
+class UpdateUser(BaseResource, FirebaseUser):
+    @superuser_required
+    def post(self, user_id, email):
+        try:
+            json_dict = self.parse_request_json(UidRequiredSechma())
+            user = self.update_user(uid=json_dict["uid"], update_dict=json_dict)
+            data = UidRequiredSechma().dump(user)
+            return self.handle_success_response(data=data)
+        except Exception as e:
+            return self.handle_errors_response(e)
+
+  
+class ListUsers(BaseResource, FirebaseUser):
+    @admin_required
+    def post(self, user_id, email):
+        try:
+            records = self.list_users_record()
+            list = []
+            for user_record in records:
+                user = self.get_user_record_dict(user_record)
+                json_dict = UserBaseSechma().dump(user)
+                list.append(json_dict)
+            
+            return self.handle_success_response(data={"list": list})
+        except Exception as e:
+            return self.handle_errors_response(e)
+
+
+class DeleteAllUsers(BaseResource, FirebaseUser):
     @superuser_required
     def post(self, *args, **kwargs):
         try:
-            users = self.get_users()
-            uids = []
-            for user in users:
-                uids.append(user.uid)
-            auth.delete_users(uids=uids)
+            records = self.list_users_record()
+            uids = [user_record.uid for user_record in records]
+            self.delete_users(uids=uids)
             return self.handle_success_response()
         except Exception as e:
             return self.handle_errors_response(e)
         
     
-class DeleteUser(BaseResource):
+class DeleteUser(BaseResource, FirebaseUser):
     @superuser_required
     def post(self, *args, **kwargs):
         try:
-            user = self.parse_request_form(UidRequiredSechma())
-            user.delete_user()
+            json_dict = self.parse_request_json(UidRequiredSechma())
+            self.delete_user(uid=json_dict["uid"])
             return self.handle_success_response()
         except Exception as e:
             return self.handle_errors_response(e)
-        

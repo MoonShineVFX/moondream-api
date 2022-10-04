@@ -18,12 +18,19 @@ class BaseResource(Resource):
         email, password = decode.rsplit(":", 1)
         return email, password
     
-    def parse_request_files(self, key="data"):
+    def parse_request_files(self, key="files"):
         return request.files.getlist(key) or []
     
+    def parse_request_file(self, key="file"):
+        return request.files.get(key)
+    
     def parse_request_form(self, schema):
-        form = request.form.to_dict()
+        form = request.form.to_dict() or {}
         return schema.load(form)
+    
+    def parse_request_json(self, schema):
+        json = request.get_json() or {}
+        return schema.load(json)
     
     
     def firebase_error_response(self, e: FirebaseError):
@@ -37,6 +44,8 @@ class BaseResource(Resource):
             return self.firebase_error_response(e)
         elif e.__class__ == ValidationError:
             return base_response(status_code=400, message=str(e))
+        elif e.__class__ == TypeError:
+            return base_response(status_code=415, message=str(e))
         else:
             return base_response(status_code=400, message=str(e))
 

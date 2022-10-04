@@ -13,6 +13,7 @@ flask-marshmallow = "*"
 python-dotenv = "*"
 pyrebase4 = "*"
 flask-restful = "*"
+flask-cors = "*"
 
 [dev-packages]
 autopep8 = "*"

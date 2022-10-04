@@ -1,88 +1,96 @@
-import io
-import zipfile
-from datetime import datetime, time
+from datetime import datetime
 from flask import send_file
-from firebase_admin import firestore, storage
 
 from .base import BaseResource
-from ..constants import FILE_COLLECTION_NAME, ALLOWED_IMAGE_EXTENSIONS, IMAGE_TYPE, ALLOWED_VIDEO_EXTENSIONS, VIDEO_TYPE
 from ..decoration import admin_required, login_required
-from ..schemas.file import FileQuerySchema, PathsOfFilesSchema, UploadFilesSchema
-from ..models.file import handle_file_upload
+from ..schemas.file import FileSchema, FileQuerySchema, PathsOfFilesSchema, UploadFilesSchema
+from ..firebase import FirebaseFile
 
-db = firestore.client()
-file_col = db.collection(FILE_COLLECTION_NAME)
-bucket = storage.bucket()
-
-
-class ListFiles(BaseResource):
+class ListFiles(BaseResource, FirebaseFile):
     @login_required
     def post(self, *args, **kwargs):
         try:
-            form = self.parse_request_files(FileQuerySchema())
-            print(form)
-            begin = int(begin) or int(datetime.combine(datetime.now(), time.min).timestamp())
-            end = end(int) or int(datetime.combine(datetime.now(), time.max).timestamp())
-            ref = file_col.where("create", ">=", begin).where("create", "<=", end).order_by("create", direction=firestore.Query.DESCENDING).get()
-            docs = [doc.to_dict() for doc in ref]
-            return self.handle_success_response(data={"list": docs})
+            json_dict = self.parse_request_json(FileQuerySchema())
+            begin, end = json_dict["begin"], json_dict["end"]
+            list = self.get_files(begin, end)
+            return self.handle_success_response(data={"list": list})
         except Exception as e:
             return self.handle_errors_response(e)
-    
-class DownloadFiles(BaseResource):
-    @login_required
+
+
+class DownloadFilesInZip(BaseResource, FirebaseFile):
+    # @login_required
     def post(self, *args, **kwargs):
         try:
-            form = self.parse_request_form(PathsOfFilesSchema())
-            memory_file = io.BytesIO()
-            compress_type = zipfile.ZIP_DEFLATED
-            with zipfile.ZipFile(memory_file, "w") as zf:
-                for path in form["paths"]:
-                    file_name = path.rsplit("/", 1)[1]
-                    blob = bucket.blob(path)
-                    data = blob.download_as_bytes()
-                    zf.writestr(file_name, data=data,compress_type=compress_type)
-            memory_file.seek(0)
-            return send_file(memory_file, download_name="capsule.zip", as_attachment=True)
+            json_dict = self.parse_request_json(PathsOfFilesSchema())
+            paths = set(json_dict["paths"])
+            download_name = datetime.now().strftime("%Y-%m-%d") + ".zip"
+            memory_file = self.create_zip(paths)
+            
+            return send_file(memory_file, download_name=download_name, as_attachment=True )
         except Exception as e:
             return self.handle_errors_response(e)
         
-class DeleteFiles(BaseResource):
+class DeleteFiles(BaseResource, FirebaseFile):
     @admin_required
     def post(self, *args, **kwargs):
         try:
-            form = self.parse_request_form()
-            paths = form["paths"]
-            file_docs = file_col.where("path", "in", paths).get()
-            for doc in file_docs:
-                doc.delete()
-                
-            
-            blobs = []
-            for path in paths:
-                blob = bucket.blob(path)
-                blobs.append(blob)
-                
-            bucket.delete_blobs(blobs)
-            
+            json_dict = self.parse_request_json(PathsOfFilesSchema())
+            paths = set(json_dict["paths"])
+            self.delete_files(paths)
             return self.handle_success_response()
         except Exception as e:
             return self.handle_errors_response(e)
             
-class UploadFiles(BaseResource):
+class UploadFiles(BaseResource, FirebaseFile):
     @admin_required
     def post(self, user_id, email):
         try:
-            form = self.parse_request_form(UploadFilesSchema())
-            session_id = form["session_id"] or ""
             files = self.parse_request_files()
+            if not self.is_image_or_video_files(files):
+                raise TypeError("Only images and videos are allowed")
+            
+            form_dict = self.parse_request_form(UploadFilesSchema())
+            session_id = form_dict["session_id"] or ""
             create = int(datetime.now().timestamp())
             
-            datas = []
+            list = []
             for file in files:
-                datas.append(handle_file_upload(file, user_id, create, session_id))
-            
-            return self.handle_success_response(data={"list": datas})
+                file_dict=None
+                if file.content_type.startswith('image'):
+                    file_dict = self.handle_image(file, create, user_id, session_id)
+                elif file.content_type.startswith('video'):
+                    file_dict = self.handle_video(file, create, user_id, session_id)
+                    
+                json_dict = FileSchema().dump(file_dict)
+                self.create_file_document_to_firestore(json_dict)
+                list.append(json_dict)
+                
+            return self.handle_success_response(status_code=201, data={"list": list})
         except Exception as e:
             return self.handle_errors_response(e)
         
+
+class UploadFile(BaseResource, FirebaseFile):
+    @admin_required
+    def post(self, user_id, email):
+        try:
+            file = self.parse_request_file()
+            if not self.is_image_or_video_files(files=[file]):
+                raise TypeError("Only images and videos are allowed")
+            
+            form_dict = self.parse_request_form(UploadFilesSchema())
+            session_id = form_dict["session_id"] or ""
+            create = int(datetime.now().timestamp())
+            
+            file_dict=None
+            if file.content_type.startswith('image'):
+                file_dict = self.handle_image(file, create, user_id, session_id)
+            elif file.content_type.startswith('video'):
+                file_dict = self.handle_video(file, create, user_id, session_id)
+                
+            json_dict = FileSchema().dump(file_dict)
+            self.create_file_document_to_firestore(json_dict)
+            return self.handle_success_response(status_code=201, data=json_dict)
+        except Exception as e:
+            return self.handle_errors_response(e)
