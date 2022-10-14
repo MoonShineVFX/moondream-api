@@ -1,0 +1,7 @@
+import os
+
+MOONDREAM_REALITY_CLIENT_SIDE_URL = os.environ.get("MOONDREAM_REALITY_CLIENT_SIDE_URL", "http://127.0.0.1:5000") 
+DOGE_TOKEN = os.environ.get("DOGE_TOKEN", "auth_token")
+DOGE_AUTHORIZATION = f"Bearer {DOGE_TOKEN}"
+SESSION_COLLECTION_NAME = "sessions"
+

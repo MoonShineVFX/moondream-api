@@ -5,12 +5,12 @@ from .base import BaseResource
 from api.constants import SESSION_ID_NAME, Role
 from api.schemas.user import CreateUserSechma, UidRequiredSechma, UserBaseSechma
 from api.decoration import login_required, admin_required, superuser_required
-from api.firebase import FirebaseUser
+from api.model.user import UserModel
 
-from ..utils import base_response
+from api.utils import output_json
 
 
-class GetUser(BaseResource, FirebaseUser):
+class GetUser(BaseResource, UserModel):
     @login_required
     def post(self, user_id, email):
         try:
@@ -21,7 +21,7 @@ class GetUser(BaseResource, FirebaseUser):
             return self.handle_errors_response(e)
     
       
-class LoginUser(BaseResource, FirebaseUser):
+class LoginUser(BaseResource, UserModel):
     def post(self):
         try:
             email, password = self.parse_request_authorization()
@@ -34,13 +34,14 @@ class LoginUser(BaseResource, FirebaseUser):
             return response
           
         except Exception as e:
+            print(e.__class__)
             e_dict = json.loads(re.search('({(.|\s)*})', str(e)).group(0).replace("'", '"'))
             error = e_dict['error']
            
-            return base_response(status_code=error['code'], message=error['message'])
+            return output_json(data={"message":error['message']}, code=error['code'])
       
         
-class LogoutUser(BaseResource, FirebaseUser):
+class LogoutUser(BaseResource, UserModel):
     @login_required
     def post(self, *args, **kwargs):
         try:
@@ -52,10 +53,10 @@ class LogoutUser(BaseResource, FirebaseUser):
             return self.handle_errors_response(e)
             
             
-class CreateSuperuser(BaseResource, FirebaseUser):
+class CreateSuperuser(BaseResource, UserModel):
     def post(self):
         try:
-            json_dict = self.parse_request_json(CreateUserSechma())
+            json_dict = self.parse_request_data(CreateUserSechma())
             user = self.create_user(
                     role=Role.SUPERUSER,
                     email=json_dict['email'],
@@ -63,16 +64,16 @@ class CreateSuperuser(BaseResource, FirebaseUser):
                     email_verified=True
                 )
             data = CreateUserSechma().dump(user)
-            return self.handle_success_response(status_code=201, data=data)
+            return self.handle_success_response(code=201, data=data)
         except Exception as e:
             return self.handle_errors_response(e)
 
 
-class CreateAdmin(BaseResource, FirebaseUser):
+class CreateAdmin(BaseResource, UserModel):
     @superuser_required
     def post(self, user_id, email):
         try:
-            json_dict = self.parse_request_json(CreateUserSechma())
+            json_dict = self.parse_request_data(CreateUserSechma())
             user = self.create_user(
                     role=Role.ADMIN,
                     email=json_dict['email'],
@@ -80,16 +81,16 @@ class CreateAdmin(BaseResource, FirebaseUser):
                     email_verified=True
                 )
             data = CreateUserSechma().dump(user)
-            return self.handle_success_response(status_code=201, data=data)
+            return self.handle_success_response(code=201, data=data)
         except Exception as e:
             return self.handle_errors_response(e)
             
 
-class CreateClient(BaseResource, FirebaseUser):
+class CreateClient(BaseResource, UserModel):
     @admin_required
     def post(self, user_id, email):
         try:
-            json_dict = self.parse_request_json(CreateUserSechma())
+            json_dict = self.parse_request_data(CreateUserSechma())
             user = self.create_user(
                     role=Role.CLIENT,
                     email=json_dict['email'],
@@ -97,12 +98,12 @@ class CreateClient(BaseResource, FirebaseUser):
                     email_verified=False
                 )
             data = CreateUserSechma().dump(user)
-            return self.handle_success_response(status_code=201, data=data)
+            return self.handle_success_response(code=201, data=data)
         except Exception as e:
             return self.handle_errors_response(e)
 
 
-class ResetCurrentUserPassword(BaseResource, FirebaseUser):
+class ResetCurrentUserPassword(BaseResource, UserModel):
     @login_required
     def post(self, user_id, email):
         try:
@@ -113,11 +114,11 @@ class ResetCurrentUserPassword(BaseResource, FirebaseUser):
 
   
 
-class UpdateUser(BaseResource, FirebaseUser):
+class UpdateUser(BaseResource, UserModel):
     @superuser_required
     def post(self, user_id, email):
         try:
-            json_dict = self.parse_request_json(UidRequiredSechma())
+            json_dict = self.parse_request_data(UidRequiredSechma())
             user = self.update_user(uid=json_dict["uid"], update_dict=json_dict)
             data = UidRequiredSechma().dump(user)
             return self.handle_success_response(data=data)
@@ -125,7 +126,7 @@ class UpdateUser(BaseResource, FirebaseUser):
             return self.handle_errors_response(e)
 
   
-class ListUsers(BaseResource, FirebaseUser):
+class ListUsers(BaseResource, UserModel):
     @admin_required
     def post(self, user_id, email):
         try:
@@ -141,7 +142,7 @@ class ListUsers(BaseResource, FirebaseUser):
             return self.handle_errors_response(e)
 
 
-class DeleteAllUsers(BaseResource, FirebaseUser):
+class DeleteAllUsers(BaseResource, UserModel):
     @superuser_required
     def post(self, *args, **kwargs):
         try:
@@ -153,11 +154,11 @@ class DeleteAllUsers(BaseResource, FirebaseUser):
             return self.handle_errors_response(e)
         
     
-class DeleteUser(BaseResource, FirebaseUser):
+class DeleteUser(BaseResource, UserModel):
     @superuser_required
     def post(self, *args, **kwargs):
         try:
-            json_dict = self.parse_request_json(UidRequiredSechma())
+            json_dict = self.parse_request_data(UidRequiredSechma())
             self.delete_user(uid=json_dict["uid"])
             return self.handle_success_response()
         except Exception as e:

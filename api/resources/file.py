@@ -4,13 +4,13 @@ from flask import send_file
 from .base import BaseResource
 from ..decoration import admin_required, login_required
 from ..schemas.file import FileSchema, FileQuerySchema, PathsOfFilesSchema, UploadFilesSchema
-from ..firebase import FirebaseFile
+from ..model.file import FileModel
 
-class ListFiles(BaseResource, FirebaseFile):
+class ListFiles(BaseResource, FileModel):
     @login_required
     def post(self, *args, **kwargs):
         try:
-            json_dict = self.parse_request_json(FileQuerySchema())
+            json_dict = self.parse_request_data(FileQuerySchema())
             begin, end = json_dict["begin"], json_dict["end"]
             list = self.get_files(begin, end)
             return self.handle_success_response(data={"list": list})
@@ -18,11 +18,11 @@ class ListFiles(BaseResource, FirebaseFile):
             return self.handle_errors_response(e)
 
 
-class DownloadFilesInZip(BaseResource, FirebaseFile):
+class DownloadFilesInZip(BaseResource, FileModel):
     # @login_required
     def post(self, *args, **kwargs):
         try:
-            json_dict = self.parse_request_json(PathsOfFilesSchema())
+            json_dict = self.parse_request_data(PathsOfFilesSchema())
             paths = set(json_dict["paths"])
             download_name = datetime.now().strftime("%Y-%m-%d") + ".zip"
             memory_file = self.create_zip(paths)
@@ -31,18 +31,18 @@ class DownloadFilesInZip(BaseResource, FirebaseFile):
         except Exception as e:
             return self.handle_errors_response(e)
         
-class DeleteFiles(BaseResource, FirebaseFile):
+class DeleteFiles(BaseResource, FileModel):
     @admin_required
     def post(self, *args, **kwargs):
         try:
-            json_dict = self.parse_request_json(PathsOfFilesSchema())
+            json_dict = self.parse_request_data(PathsOfFilesSchema())
             paths = set(json_dict["paths"])
             self.delete_files(paths)
             return self.handle_success_response()
         except Exception as e:
             return self.handle_errors_response(e)
             
-class UploadFiles(BaseResource, FirebaseFile):
+class UploadFiles(BaseResource, FileModel):
     @admin_required
     def post(self, user_id, email):
         try:
@@ -50,7 +50,7 @@ class UploadFiles(BaseResource, FirebaseFile):
             if not self.is_image_or_video_files(files):
                 raise TypeError("Only images and videos are allowed")
             
-            form_dict = self.parse_request_form(UploadFilesSchema())
+            form_dict = self.parse_request_data(UploadFilesSchema())
             session_id = form_dict["session_id"] or ""
             create = int(datetime.now().timestamp())
             
@@ -66,12 +66,12 @@ class UploadFiles(BaseResource, FirebaseFile):
                 self.create_file_document_to_firestore(json_dict)
                 list.append(json_dict)
                 
-            return self.handle_success_response(status_code=201, data={"list": list})
+            return self.handle_success_response(code=201, data={"list": list})
         except Exception as e:
             return self.handle_errors_response(e)
         
 
-class UploadFile(BaseResource, FirebaseFile):
+class UploadFile(BaseResource, FileModel):
     @admin_required
     def post(self, user_id, email):
         try:
@@ -79,7 +79,7 @@ class UploadFile(BaseResource, FirebaseFile):
             if not self.is_image_or_video_files(files=[file]):
                 raise TypeError("Only images and videos are allowed")
             
-            form_dict = self.parse_request_form(UploadFilesSchema())
+            form_dict = self.parse_request_data(UploadFilesSchema())
             session_id = form_dict["session_id"] or ""
             create = int(datetime.now().timestamp())
             
@@ -91,6 +91,6 @@ class UploadFile(BaseResource, FirebaseFile):
                 
             json_dict = FileSchema().dump(file_dict)
             self.create_file_document_to_firestore(json_dict)
-            return self.handle_success_response(status_code=201, data=json_dict)
+            return self.handle_success_response(code=201, data=json_dict)
         except Exception as e:
             return self.handle_errors_response(e)

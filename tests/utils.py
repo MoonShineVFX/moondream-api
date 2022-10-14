@@ -1,10 +1,11 @@
-import base64
 import io
 from PIL import Image
 from flask import json
 
-from api.firebase import FirebaseUser, FirebaseFile
+from api.model.file import FileModel
+from api.model.user import UserModel
 from api.constants import IMAGE_TYPE, SESSION_ID_NAME, Role
+from api.utils import base64_encode_url
 
 
 WRONG_EMAIL_FORMAT = "wrong_email_format"
@@ -26,24 +27,24 @@ IMAGE_1 = "1.png"
 
 
 def f_login_user(test_client, email, password):
-    user, id_token = FirebaseUser().login_user(email, password)
-    cookie = FirebaseUser().create_session_cookie(SESSION_ID_NAME, id_token)
+    user, id_token = UserModel().login_user(email, password)
+    cookie = UserModel().create_session_cookie(SESSION_ID_NAME, id_token)
     test_client.set_cookie("localhost", cookie['key'], cookie['value'])
     
 def f_logout_user(test_client):
-    cookie = FirebaseUser().disable_session_cookie(SESSION_ID_NAME)
+    cookie = UserModel().disable_session_cookie(SESSION_ID_NAME)
     test_client.set_cookie("localhost", cookie['key'], cookie['value'])
     
 
 def f_delete_user(uid):
-    FirebaseUser().delete_user(uid)
+    UserModel().delete_user(uid)
         
 def f_delete_users(uids=[]):
-    FirebaseUser().delete_users(uids)
+    UserModel().delete_users(uids)
         
         
 def f_create_user(role, email, password):
-    return FirebaseUser().create_user(
+    return UserModel().create_user(
         role=role,
         uid=email, 
         email=email, 
@@ -52,10 +53,7 @@ def f_create_user(role, email, password):
 
 
 def create_auth_token(email, password):
-    s = email + ":" + password
-    b = s.encode()
-    e = base64.b64encode(b)
-    token = e.decode()
+    token = base64_encode_url(email, password)
     return "Basic " + token
 
 
@@ -63,7 +61,7 @@ def load_data(json_data):
     return json.loads(json_data)
 
 def f_list_file():
-    return FirebaseFile().get_files(begin=1, end=9999999999999999)
+    return FileModel().get_files(begin=1, end=9999999999999999)
 
 
 def f_create_image():
@@ -74,6 +72,6 @@ def f_create_image():
     return memory_file
 
 def f_delete_files(names):
-    paths = [FirebaseFile().get_destination_path(type=IMAGE_TYPE, name=name) for name in names]
+    paths = [FileModel().create_destination_path(type=IMAGE_TYPE, name=name) for name in names]
     print(paths)
-    FirebaseFile().delete_files(paths)
+    FileModel().delete_files(paths)
