@@ -38,7 +38,7 @@ flask --debug run
 ```
 
 ## Testing
-Test with roles that will frequently switch between superuser, admin, client and no-login. Sometimes it will fail the test cause the frequent switching of roles. So please try twice, or let it sleep more than 1 second between functions when it fail the test.
+Tested by switching roles between superuser, administrator, client, and no login. Sometimes frequent role switching will cause the test to fail, so please try more, or try to test for a specific file or function.
 
 
 1. Test all
