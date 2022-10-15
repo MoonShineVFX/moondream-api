@@ -1,5 +1,5 @@
 from flask import json
-from api import routes
+from api.common import routes
 from .utils import SUPERUSER_2, WRONG_EMAIL_FORMAT, SUPERUSER_0, SUPERUSER_1, PASSWORD_1, f_delete_user
 
 

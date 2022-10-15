@@ -1,5 +1,5 @@
+from api.common import routes
 from .utils import f_login_user, SUPERUSER_0, PASSWORD_0
-from api import routes
 
 def logout_user(test_client):
     return test_client.post(routes.USER_LOGOUT)

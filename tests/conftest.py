@@ -2,7 +2,7 @@ import time
 import pytest
 from app import create_app
 from .utils import f_create_user, f_delete_users, SUPERUSER_0, ADMIN_0, CLIENT_0, PASSWORD_0
-from api.constants import Role
+from api.common.constants import Role
 
 def init_users():
     f_create_user(

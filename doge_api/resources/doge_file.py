@@ -1,12 +1,13 @@
 from flask import jsonify, send_file, redirect
+from werkzeug.utils import secure_filename
 
-from api.constants import IMAGE_TYPE, VIDEO_TYPE
+from api.common.constants import IMAGE_TYPE, VIDEO_TYPE
 from api.model.file import FileModel
 from api.resources.base import BaseResource
 
 from doge_api.models.session import SessionModel
-from ..decoration import doge_auth_required
-from ..schemas.doge_file import FileSchema, UploadFilesSchema
+from doge_api.common.decoration import doge_auth_required
+from doge_api.schemas.doge_file import FileSchema, UploadFilesSchema
 
 
 class FilesBase(BaseResource, FileModel):
@@ -25,12 +26,13 @@ class FilesBase(BaseResource, FileModel):
             session_id = form_dict["session_id"] or ""
             create = int(form_dict["created_at"].timestamp())
             
-            destination_path = self.create_destination_path(type=self.type, name=file.filename)
+            filename = secure_filename(file.filename)
+            destination_path = self.create_destination_path(self.type, filename)
             file_blob = self.upload_file_to_storage(destination_path, file, file.content_type)
             
-            thumb_filename = self.create_thumb_name(file.filename)
-            thumb_destination_path = self.create_destination_path(type=self.type, name=thumb_filename)
-            thumb_blob = self.upload_file_to_storage(thumb_destination_path, thumb_file, file.content_type)
+            thumb_filename = self.create_thumb_name(filename)
+            thumb_destination_path = self.create_destination_path(self.type, thumb_filename)
+            thumb_blob = self.upload_file_to_storage(thumb_destination_path, thumb_file, thumb_file.content_type)
 
             data_dict = self.create_file_dict(
                 create=create, 
@@ -45,7 +47,8 @@ class FilesBase(BaseResource, FileModel):
             )
             
             json_dict = FileSchema().dump(data_dict)
-            self.create_file_document_to_firestore(json_dict)
+            self.set_doc(id=json_dict["id"], data_dict=json_dict)
+            
             return {"url_code": json_dict["id"]}
         except Exception as e:
             return jsonify(e)
@@ -57,11 +60,10 @@ class DogeVideo(FilesBase):
     type = VIDEO_TYPE
     
     
-class FileDownload(BaseResource, FileModel, SessionModel):
+class FileDownload(BaseResource, FileModel):
     def get(self, doc_id):
         
-        data_dict = self.get_file(doc_id)
-        print(data_dict)
+        data_dict = self.get_doc_dict(doc_id)
         return redirect(data_dict["fileURL"])
         # download_name = doc_id + ".zip"
         # memory_file = self.create_zip(paths=[data_dict["path"]])

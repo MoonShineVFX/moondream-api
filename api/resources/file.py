@@ -2,9 +2,9 @@ from datetime import datetime
 from flask import send_file
 
 from .base import BaseResource
-from ..decoration import admin_required, login_required
-from ..schemas.file import FileSchema, FileQuerySchema, PathsOfFilesSchema, UploadFilesSchema
-from ..model.file import FileModel
+from api.common.decoration import admin_required, login_required
+from api.schemas.file import FileSchema, FileQuerySchema, PathsOfFilesSchema, UploadFilesSchema
+from api.model.file import FileModel
 
 class ListFiles(BaseResource, FileModel):
     @login_required
@@ -12,7 +12,7 @@ class ListFiles(BaseResource, FileModel):
         try:
             json_dict = self.parse_request_data(FileQuerySchema())
             begin, end = json_dict["begin"], json_dict["end"]
-            list = self.get_files(begin, end)
+            list = self.query_file_doc_dict_list(begin, end)
             return self.handle_success_response(data={"list": list})
         except Exception as e:
             return self.handle_errors_response(e)
@@ -63,7 +63,7 @@ class UploadFiles(BaseResource, FileModel):
                     file_dict = self.handle_video(file, create, user_id, session_id)
                     
                 json_dict = FileSchema().dump(file_dict)
-                self.create_file_document_to_firestore(json_dict)
+                self.set_doc(id=json_dict["id"], data_dict=json_dict)
                 list.append(json_dict)
                 
             return self.handle_success_response(code=201, data={"list": list})
@@ -90,7 +90,8 @@ class UploadFile(BaseResource, FileModel):
                 file_dict = self.handle_video(file, create, user_id, session_id)
                 
             json_dict = FileSchema().dump(file_dict)
-            self.create_file_document_to_firestore(json_dict)
+            self.set_doc(id=json_dict["id"], data_dict=json_dict)
+            
             return self.handle_success_response(code=201, data=json_dict)
         except Exception as e:
             return self.handle_errors_response(e)

@@ -1,13 +1,12 @@
-import re
-from flask import redirect, json
+from flask import redirect
 
 from .base import BaseResource
-from api.constants import SESSION_ID_NAME, Role
+from api.common.constants import SESSION_ID_NAME, Role
+from api.common.decoration import login_required, admin_required, superuser_required
+from api.common.utils import output_json
 from api.schemas.user import CreateUserSechma, UidRequiredSechma, UserBaseSechma
-from api.decoration import login_required, admin_required, superuser_required
 from api.model.user import UserModel
 
-from api.utils import output_json
 
 
 class GetUser(BaseResource, UserModel):
@@ -34,11 +33,8 @@ class LoginUser(BaseResource, UserModel):
             return response
           
         except Exception as e:
-            print(e.__class__)
-            e_dict = json.loads(re.search('({(.|\s)*})', str(e)).group(0).replace("'", '"'))
-            error = e_dict['error']
-           
-            return output_json(data={"message":error['message']}, code=error['code'])
+            message, code = self.get_error_message_and_code(e)
+            return output_json(data={"message":message}, code=code)
       
         
 class LogoutUser(BaseResource, UserModel):

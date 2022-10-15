@@ -43,14 +43,14 @@ Test with roles that will frequently switch between superuser, admin, client and
 
 1. Test all
 ```
-pytest tests
+pytest tests -s
 ```
 2. Test single file
 ```
-pytest tests/test_file.py
+pytest tests/test_file.py -s
 ```
 3. Test specific function in file
 ```
-pytest tests/test_file.py::test_func
+pytest tests/test_file.py::test_func -s
 ```
 

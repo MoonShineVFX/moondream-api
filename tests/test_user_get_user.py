@@ -1,4 +1,4 @@
-from api import routes
+from api.common import routes
 from .utils import f_login_user, f_logout_user, SUPERUSER_0, PASSWORD_0
 
     

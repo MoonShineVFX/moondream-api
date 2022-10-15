@@ -1,11 +1,11 @@
 from flask import Flask
 from flask_restful import Api
 from flask_cors import CORS
-from api import routes
+from api.common import routes
 from api.common.custom_api import CustomApi
 from api.resources import user, file
 
-from doge_api import routes as doge_routes
+from doge_api.common import routes as doge_routes
 from doge_api.common.custom_api import DogeCustomApi
 from doge_api.resources import doge_file, session
 

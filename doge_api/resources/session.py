@@ -4,11 +4,10 @@ from flask import jsonify
 from api.model.file import FileModel
 from api.resources.base import BaseResource
 
-from doge_api.constants import MOONDREAM_REALITY_CLIENT_SIDE_URL
-from doge_api.decoration import doge_auth_required
+from doge_api.common.constants import MOONDREAM_REALITY_CLIENT_SIDE_URL
+from doge_api.common.decoration import doge_auth_required
 from doge_api.models.session import SessionModel
 from doge_api.schemas.session import SessionBaseSchema, SessionRecordsLinkByRangeSchema, SessionRecordsLinkSchema
-from firebase_admin.exceptions import FirebaseError
 
 class Sessions(BaseResource, SessionModel):
     @doge_auth_required
@@ -51,15 +50,14 @@ class Session(BaseResource, SessionModel):
 
     @doge_auth_required
     def patch(self, session_id):
-        # try:
+        try:
             data_dict = self.parse_request_data(SessionBaseSchema())
             self.update_doc(session_id, data_dict)
             data_dict["id"] = session_id
             json_dict = SessionBaseSchema().dump(data_dict)
-            return json_dict, 200
-        # except Exception as e:
-            
-        #     return self.handle_errors_response(e)
+            return jsonify(**json_dict)
+        except Exception as e:
+            return self.handle_errors_response(e)
         
     @doge_auth_required
     def delete(self, session_id):
@@ -104,7 +102,7 @@ class SessionRecords(BaseResource, SessionModel, FileModel):
     def get(self, session_id):
         try:
             doc_dict = self.get_doc_dict(session_id)
-            file_dicts = self.get_files(begin=doc_dict["start_at"], end=doc_dict["end_at"])
+            file_dicts = self.query_file_doc_dict_list(begin=doc_dict["start_at"], end=doc_dict["end_at"])
             data = self.separate_files(file_dicts)
             return data
         except Exception as e:
@@ -119,7 +117,7 @@ class SessionRecordsByRange(BaseResource, SessionModel, FileModel):
             end = data_dict["end"]
             start_timestamp = self.convert_timestamp(start)
             end_timestamp = self.convert_timestamp(end)
-            files = self.get_files(begin=start_timestamp, end=end_timestamp)
+            files = self.query_file_doc_dict_list(begin=start_timestamp, end=end_timestamp)
             data = self.separate_files(files)
             return data
             

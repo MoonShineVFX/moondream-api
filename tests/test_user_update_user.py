@@ -1,6 +1,6 @@
 from flask import json
-from api import routes
-from api.constants import Role
+from api.common import routes
+from api.common.constants import Role
 from .utils import CLIENT_0,  PASSWORD_0, PASSWORD_2, SUPERUSER_0, ADMIN_0,  PASSWORD_1, SUPERUSER_1, WRONG_EMAIL_FORMAT, f_login_user, f_logout_user, f_create_user, f_delete_user
 
 

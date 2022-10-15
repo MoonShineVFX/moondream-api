@@ -1,5 +1,4 @@
-from unicodedata import name
-from api import routes
+from api.common import routes
 from .utils import CLIENT_0, IMAGE_0, IMAGE_1,  PASSWORD_0,  SUPERUSER_0, ADMIN_0,  f_login_user, f_logout_user, f_create_image, f_delete_files
 
 

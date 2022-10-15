@@ -6,7 +6,7 @@ from flask import request
 from werkzeug.exceptions import HTTPException
 from flask_restful.utils import http_status_message
 
-from ..utils import output_json, base64_decode_url
+from api.common.utils import output_json, base64_decode_url
 
 class BaseResource(Resource):
     def parse_request_authorization(self):

@@ -1,5 +1,5 @@
+from api.common import routes
 from .utils import create_auth_token, f_logout_user, SUPERUSER_0, PASSWORD_0, WRONG_EMAIL_FORMAT, PASSWORD_1
-from api import routes
 
 def login_user(test_client, email, password):
     token = create_auth_token(email, password)

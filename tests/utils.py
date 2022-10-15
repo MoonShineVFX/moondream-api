@@ -1,11 +1,12 @@
 import io
+import datetime
 from PIL import Image
 from flask import json
 
 from api.model.file import FileModel
 from api.model.user import UserModel
-from api.constants import IMAGE_TYPE, SESSION_ID_NAME, Role
-from api.utils import base64_encode_url
+from api.common.constants import IMAGE_TYPE, SESSION_ID_NAME, Role
+from api.common.utils import base64_encode_url
 
 
 WRONG_EMAIL_FORMAT = "wrong_email_format"
@@ -61,7 +62,7 @@ def load_data(json_data):
     return json.loads(json_data)
 
 def f_list_file():
-    return FileModel().get_files(begin=1, end=9999999999999999)
+    return FileModel().query_file_doc_dict_list(begin=1, end=9999999999999999)
 
 
 def f_create_image():
