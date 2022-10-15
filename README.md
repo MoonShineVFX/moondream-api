@@ -2,10 +2,10 @@
 
 ## Overview
 [Firebase](https://firebase.google.com) provides admin sdk and client sdk.
-I have combined admin and client sdk in `api/firebase.py`. 
-If you need to deal with firebase, you should add functions in `api/firebase.py`.
+I have combined admin and client sdk in `firebase/__init__.py`. 
+If you need to deal with firebase, you should add functions in `firebase/__init__.py`.
 
-`doge_api` is owned by previous engineer. For prevent fron-end reverse version, I move his codes from Django to Flask. 
+The `doge_api` is owned by previous engineer. To prevent front-end rollback versions, I moved the codes from django to flask.
 
 ## API-doc
 [內部網頁](http://192.168.8.65/apidoc/pages/moondream/index.html)
