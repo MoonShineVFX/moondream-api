@@ -1,4 +1,5 @@
 from flask import jsonify, send_file, redirect
+from flask_restful.utils import http_status_message
 from werkzeug.utils import secure_filename
 
 from api.common.constants import IMAGE_TYPE, VIDEO_TYPE
@@ -62,13 +63,15 @@ class DogeVideo(FilesBase):
     
 class FileDownload(BaseResource, FileModel):
     def get(self, doc_id):
-        
-        data_dict = self.get_doc_dict(doc_id)
-        return redirect(data_dict["fileURL"])
+        try:
+            data_dict = self.get_doc_dict(doc_id)
+            
+            return redirect(data_dict["fileURL"])
         # download_name = doc_id + ".zip"
         # memory_file = self.create_zip(paths=[data_dict["path"]])
         # return send_file(memory_file, download_name=download_name, as_attachment=True )
-    
+        except Exception as e:
+            return http_status_message(404), 404
 class DogePhotosDownload(FileDownload):
     pass
 

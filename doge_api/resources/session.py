@@ -13,7 +13,7 @@ class Sessions(BaseResource, SessionModel):
     @doge_auth_required
     def get(self):
         try:
-            docs = self.get_docs()
+            docs = self.get_all_docs()
             list_dicts = []
             for doc in docs:
                 data_dict = self.convert_doc_to_dict(doc)
@@ -98,18 +98,19 @@ class SessionRecordsLinkByRange(BaseResource, SessionModel):
         }
         
         
-class SessionRecords(BaseResource, SessionModel, FileModel):
+class SessionRecords(BaseResource, SessionModel):
     def get(self, session_id):
         try:
             doc_dict = self.get_doc_dict(session_id)
-            file_dicts = self.query_file_doc_dict_list(begin=doc_dict["start_at"], end=doc_dict["end_at"])
+            print(doc_dict)
+            file_dicts = FileModel().query_file_doc_dict_list(begin=doc_dict["start_at"], end=doc_dict["end_at"])
             data = self.separate_files(file_dicts)
             return data
         except Exception as e:
                 return e
         
         
-class SessionRecordsByRange(BaseResource, SessionModel, FileModel):
+class SessionRecordsByRange(BaseResource, SessionModel):
     def get(self):
         try:
             data_dict = self.parse_request_data(SessionRecordsLinkByRangeSchema())
@@ -117,7 +118,7 @@ class SessionRecordsByRange(BaseResource, SessionModel, FileModel):
             end = data_dict["end"]
             start_timestamp = self.convert_timestamp(start)
             end_timestamp = self.convert_timestamp(end)
-            files = self.query_file_doc_dict_list(begin=start_timestamp, end=end_timestamp)
+            files = FileModel().query_file_doc_dict_list(begin=start_timestamp, end=end_timestamp)
             data = self.separate_files(files)
             return data
             
