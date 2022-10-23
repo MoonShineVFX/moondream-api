@@ -1,20 +1,21 @@
 from api.common import routes
-from .utils import create_auth_token, f_logout_user, SUPERUSER_0, PASSWORD_0, WRONG_EMAIL_FORMAT, PASSWORD_1
+from api.common.utils import base64_encode_url
+from .conftest import TEST_SUPERUSER_EMAIL, TEST_PASSWORD, TEST_WRONG_EMAIL_FORMAT, TEST_PASSWORD, TEST_WRONG_PASSWORD
+
 
 def login_user(test_client, email, password):
-    token = create_auth_token(email, password)
-    headers = {"Authorization": token}
+    token = base64_encode_url(email, password)
+    headers = {"Authorization": f"Basic {token}"}
     return test_client.post(routes.USER_LOGIN, headers=headers)
 
-def test_exists_email(test_client):
-    res = login_user(test_client, SUPERUSER_0, PASSWORD_0)
+def test_exists_email(test_by_superuser):
+    res = login_user(test_by_superuser, TEST_SUPERUSER_EMAIL, TEST_PASSWORD)
     assert res.status_code == 200
-    f_logout_user(test_client)
     
-def test_not_exists_email(test_client):
-    res = login_user(test_client, WRONG_EMAIL_FORMAT, PASSWORD_1)
+def test_not_exists_email(test_by_superuser):
+    res = login_user(test_by_superuser, TEST_WRONG_EMAIL_FORMAT, TEST_PASSWORD)
     assert res.status_code == 400
     
-def test_exists_email_with_wrong_password(test_client):
-    res = login_user(test_client, SUPERUSER_0, PASSWORD_1)
+def test_exists_email_with_wrong_password(test_by_superuser):
+    res = login_user(test_by_superuser, TEST_SUPERUSER_EMAIL, TEST_WRONG_PASSWORD)
     assert res.status_code == 400

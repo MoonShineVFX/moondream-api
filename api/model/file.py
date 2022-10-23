@@ -1,6 +1,7 @@
 import uuid
 import io
 import zipfile
+from datetime import datetime
 from PIL import Image
 from werkzeug.utils import secure_filename
 from firebase import Firestore, Storage
@@ -9,6 +10,9 @@ from api.common.constants import VIDEO_TYPE, IMAGE_TYPE, FILE_COLLECTION_NAME, T
 
 class FileModel(Firestore, Storage):
     col = FILE_COLLECTION_NAME
+    
+    def get_now_timestamp(self):
+        return int(datetime.now().timestamp())
     def is_image_or_video_files(self, files):
         return all([file.content_type.startswith(IMAGE_TYPE) or file.content_type.startswith(VIDEO_TYPE) for file in files])
     
@@ -44,15 +48,15 @@ class FileModel(Firestore, Storage):
         
         return memory_file
         
-    def handle_image(self, file, create, user_id, session_id):
-        filename = secure_filename(file.filename)
+    def handle_image(self, file, filename, content_type, create, user_id, session_id):
+        filename = secure_filename(filename)
         destination_path = self.create_destination_path(IMAGE_TYPE, filename)
-        blob = self.upload_file_to_storage(destination_path, file, file.content_type)
+        blob = self.upload_file_to_storage(destination_path, file, content_type)
         
         thumb_file = self.create_thumb_of_image(file)
         thumb_filename = self.create_thumb_name(filename)
         thumb_destination_path = self.create_destination_path(IMAGE_TYPE, thumb_filename)
-        thumb_blob = self.upload_file_to_storage(thumb_destination_path, thumb_file, file.content_type)
+        thumb_blob = self.upload_file_to_storage(thumb_destination_path, thumb_file, content_type)
         
         return self.create_file_dict(
                 create=create, 
@@ -66,10 +70,10 @@ class FileModel(Firestore, Storage):
                 session_id=session_id
             )
     
-    def handle_video(self, file, create, user_id, session_id):
-        filename = secure_filename(file.filename)
+    def handle_video(self, file, filename, content_type, create, user_id, session_id):
+        filename = secure_filename(filename)
         destination_path = self.create_destination_path(VIDEO_TYPE, filename)
-        blob = self.upload_file_to_storage(destination_path, file, file.content_type)
+        blob = self.upload_file_to_storage(destination_path, file, content_type)
         
         return self.create_file_dict(
                 create=create, 

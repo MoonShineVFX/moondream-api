@@ -52,15 +52,15 @@ class UploadFiles(BaseResource, FileModel):
             
             form_dict = self.parse_request_data(UploadFilesSchema())
             session_id = form_dict["session_id"] or ""
-            create = int(datetime.now().timestamp())
+            create = self.get_now_timestamp()
             
             list = []
             for file in files:
                 file_dict=None
                 if file.content_type.startswith('image'):
-                    file_dict = self.handle_image(file, create, user_id, session_id)
+                    file_dict = self.handle_image(file, file.filename, file.content_type, create, user_id, session_id)
                 elif file.content_type.startswith('video'):
-                    file_dict = self.handle_video(file, create, user_id, session_id)
+                    file_dict = self.handle_video(file, file.filename, file.content_type, create, user_id, session_id)
                     
                 json_dict = FileSchema().dump(file_dict)
                 self.set_doc(id=json_dict["id"], data_dict=json_dict)
@@ -81,13 +81,13 @@ class UploadFile(BaseResource, FileModel):
             
             form_dict = self.parse_request_data(UploadFilesSchema())
             session_id = form_dict["session_id"] or ""
-            create = int(datetime.now().timestamp())
+            create = self.get_now_timestamp()
             
             file_dict=None
             if file.content_type.startswith('image'):
-                file_dict = self.handle_image(file, create, user_id, session_id)
+                file_dict = self.handle_image(file, file.filename, file.content_type, create, user_id, session_id)
             elif file.content_type.startswith('video'):
-                file_dict = self.handle_video(file, create, user_id, session_id)
+                file_dict = self.handle_video(file, file.filename, file.content_type, create, user_id, session_id)
                 
             json_dict = FileSchema().dump(file_dict)
             self.set_doc(id=json_dict["id"], data_dict=json_dict)

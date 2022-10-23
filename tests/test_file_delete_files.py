@@ -1,12 +1,20 @@
 from flask import json
 from api.common import routes
-from .utils import CLIENT_0,  PASSWORD_0,  SUPERUSER_0, ADMIN_0,  f_login_user, f_logout_user, f_list_file
+from .conftest import IMAGE_0, IMAGE_1, t_upload_images, t_delete_files, t_get_file_path
 
+IMAGE_NAMES=[IMAGE_0, IMAGE_1]
 
-def delete_files(test_client, **kwargs):
-    list = f_list_file()[:2]
-    paths = [item["path"] for item in list]
-    print(paths)
+def setup_function():
+    t_upload_images(names=IMAGE_NAMES)
+
+def teardown_function():
+    try:
+        t_delete_files(names=IMAGE_NAMES)
+    except Exception as e:
+        print(e)
+
+def action(test_client, **kwargs):
+    paths = [t_get_file_path(name) for name in IMAGE_NAMES]
     data = {
         **kwargs,
         "paths": paths
@@ -15,28 +23,22 @@ def delete_files(test_client, **kwargs):
     return test_client.post(routes.FILE_DELETE_FILES, data=json_dict, content_type='application/json')
 
 
-def action_by_role(test_client, email, password, **kwargs):
-    f_login_user(test_client, email, password)
-    res = delete_files(test_client, **kwargs)
-    f_logout_user(test_client)
-    return res
-
-def test_without_login(test_client):
-    res = delete_files(test_client)
+def test_without_login(test_without_login):
+    res = action(test_without_login)
     assert res.status_code == 401
     
-def test_by_client(test_client):
-    res = action_by_role(test_client, CLIENT_0, PASSWORD_0)
+def test_by_client(test_by_client):
+    res = action(test_by_client)
     assert res.status_code == 403
     
-def test_by_admin(test_client):
-    res = action_by_role(test_client, ADMIN_0, PASSWORD_0)
+def test_by_admin(test_by_admin):
+    res = action(test_by_admin)
     assert res.status_code == 200
 
-def test_by_superuser_with_wrong_attribute(test_client):
-    res = action_by_role(test_client, SUPERUSER_0, PASSWORD_0, WRONG_EMAIL_FORMAT=True)
+def test_by_superuser_with_wrong_attribute(test_by_superuser):
+    res = action(test_by_superuser, TEST_WRONG_FILED=True)
     assert res.status_code == 400
   
-def test_by_superuser(test_client):
-    res = action_by_role(test_client, SUPERUSER_0, PASSWORD_0)
+def test_by_superuser(test_by_superuser):
+    res = action(test_by_superuser)
     assert res.status_code == 200

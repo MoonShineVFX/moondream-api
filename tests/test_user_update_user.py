@@ -1,47 +1,42 @@
 from flask import json
 from api.common import routes
 from api.common.constants import Role
-from .utils import CLIENT_0,  PASSWORD_0, PASSWORD_2, SUPERUSER_0, ADMIN_0,  PASSWORD_1, SUPERUSER_1, WRONG_EMAIL_FORMAT, f_login_user, f_logout_user, f_create_user, f_delete_user
+from .conftest import TEST_EMAIL, TEST_PASSWORD, t_create_user, t_delete_user, t_get_user_by_email
 
 
 def setup_module():
-    f_create_user(Role.SUPERUSER, SUPERUSER_1, PASSWORD_1)
+    t_create_user(Role.ADMIN, TEST_EMAIL, TEST_PASSWORD)
 
 def teardown_module():
-    f_delete_user(SUPERUSER_1)
+    t_delete_user(TEST_EMAIL)
 
-def update_user(test_client, uid, obj):
+def action(test_client, **kwargs):
     data = {
-        **obj,
-        "uid": uid,
+        **kwargs,
+        "uid": TEST_EMAIL,
     }
     json_dict = json.dumps(obj=data)
     return test_client.post(routes.USER_UPDATE_USER, data=json_dict, content_type='application/json')
 
 
-def update_by_user(test_client, email, password, uid, obj):
-    f_login_user(test_client, email, password)
-    res = update_user(test_client, uid, obj)
-    print(res.data)
-    f_logout_user(test_client)
-    return res
-
-def test_without_login(test_client):
-    res = update_user(test_client, SUPERUSER_1, obj={"password": PASSWORD_2})
+def test_without_login(test_without_login):
+    res = action(test_without_login, disabled=True)
     assert res.status_code == 401
     
-def test_by_client(test_client):
-    res = update_by_user(test_client, CLIENT_0, PASSWORD_0, SUPERUSER_1, obj={"password": PASSWORD_2})
+def test_by_client(test_by_client):
+    res = action(test_by_client, disabled=True)
     assert res.status_code == 403
     
-def test_by_admin(test_client):
-    res = update_by_user(test_client, ADMIN_0, PASSWORD_0, SUPERUSER_1, obj={"password": PASSWORD_2})
+def test_by_admin(test_by_admin):
+    res = action(test_by_admin, disabled=True)
     assert res.status_code == 403
 
-def test_by_superuser_with_wrong_attribute(test_client):
-    res = update_by_user(test_client, SUPERUSER_0, PASSWORD_0, SUPERUSER_1, obj={"password": PASSWORD_2, WRONG_EMAIL_FORMAT: True})
+def test_by_superuser_with_wrong_attribute(test_by_superuser):
+    res = action(test_by_superuser, disabled=True, TEST_WRONG_FILED=True)
     assert res.status_code == 400
   
-def test_by_superuser(test_client):
-    res = update_by_user(test_client, SUPERUSER_0, PASSWORD_0, SUPERUSER_1, obj={"password": PASSWORD_2, "disabled": True})
+def test_by_superuser(test_by_superuser):
+    res = action(test_by_superuser, disabled=True)
     assert res.status_code == 200
+    user = t_get_user_by_email(TEST_EMAIL)
+    assert user["disabled"] == True

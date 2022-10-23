@@ -28,6 +28,10 @@ class UserModel(Auth):
         user = self.auth.get_user(uid=uid)
         return self.get_user_record_dict(user)
     
+    def get_user_by_email(self, email):
+        user = self.auth.get_user_by_email(email=email)
+        return self.get_user_record_dict(user)
+    
     def list_users_record(self):
         return self.auth.list_users().iterate_all()
 
